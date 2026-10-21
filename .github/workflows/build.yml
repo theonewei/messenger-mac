@@ -1,0 +1,51 @@
+name: macOS builds
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: macos-14
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [arm64, x64]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run check
+      - name: Build installers
+        run: npm run build:${{ matrix.arch }}
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+      - name: Verify packaged executable architecture
+        env:
+          EXPECTED_ARCH: ${{ matrix.arch }}
+        run: |
+          if [ "$EXPECTED_ARCH" = arm64 ]; then
+            executable="dist/mac-arm64/MessengerApp.app/Contents/MacOS/MessengerApp"
+            expected=arm64
+          else
+            executable="dist/mac/MessengerApp.app/Contents/MacOS/MessengerApp"
+            expected=x86_64
+          fi
+          actual=$(lipo -archs "$executable")
+          test "$actual" = "$expected"
+          test -f "dist/MessengerApp-$(node -p 'require("./package.json").version')-$EXPECTED_ARCH.dmg"
+          test -f "dist/MessengerApp-$(node -p 'require("./package.json").version')-$EXPECTED_ARCH.zip"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: messenger-macos-${{ matrix.arch }}
+          path: |
+            dist/*-${{ matrix.arch }}.dmg
+            dist/*-${{ matrix.arch }}.zip
+          if-no-files-found: error
