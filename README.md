@@ -8,11 +8,11 @@ A standalone desktop app for Facebook Messenger on macOS. Chat with friends with
 
 ## Download
 
-**[Download Messenger for Mac v1.3.0 (DMG)](https://github.com/stefanminch/messenger-mac/releases/download/v1.3.0/MessengerApp-1.3.0.dmg)** | macOS 10.13+
+This fork adds native Apple Silicon (`arm64`) builds alongside Intel (`x64`) builds.
 
-[![GitHub Release](https://img.shields.io/github/v/release/stefanminch/messenger-mac)](https://github.com/stefanminch/messenger-mac/releases)
+Builds from this fork are not Developer ID signed or notarized. Upstream's signing credentials do not apply to this fork. No fork release is published yet; build locally using the steps below, or download build artifacts from a successful [macOS build workflow](https://github.com/theonewei/messenger-mac/actions/workflows/build.yml).
 
-> Signed and notarized by Apple for your security.
+Choose `MessengerApp-<version>-arm64.dmg` for Apple Silicon (M-series Macs), or `MessengerApp-<version>-x64.dmg` for Intel. ZIP builds are also available. Electron 33 requires macOS 11 or later.
 
 ## Features
 
@@ -46,7 +46,7 @@ All settings (sidebar visibility) are persisted across app restarts.
 
 ## Installation
 
-1. Download the [DMG file](https://github.com/stefanminch/messenger-mac/releases/download/v1.3.0/MessengerApp-1.3.0.dmg)
+1. Build locally or download the DMG matching your Mac from the workflow artifacts linked above (GitHub sign-in required).
 2. Open the DMG
 3. Drag **MessengerApp** to your **Applications** folder
 4. Launch from Applications or Spotlight
@@ -55,27 +55,39 @@ All settings (sidebar visibility) are persisted across app restarts.
 
 ### Prerequisites
 
-- Node.js 18+
-- npm or yarn
+- macOS 11+ (Apple Silicon or Intel)
+- Node.js 22 LTS
+- npm
 
 ### Steps
 
 ```bash
 # Clone the repository
-git clone https://github.com/stefanminch/messenger-mac.git
+git clone https://github.com/theonewei/messenger-mac.git
 cd messenger-mac
 
 # Install dependencies
-npm install
+npm ci
 
 # Run in development mode
 npm start
 
-# Build for production
-npm run build
+# Check JavaScript syntax
+npm run check
+
+# Build native Apple Silicon DMG and ZIP
+CSC_IDENTITY_AUTO_DISCOVERY=false npm run build:arm64
+
+# Or build Intel DMG and ZIP
+CSC_IDENTITY_AUTO_DISCOVERY=false npm run build:x64
+
+# Or build both architectures
+CSC_IDENTITY_AUTO_DISCOVERY=false npm run build
 ```
 
-The built app will be in the `dist/` folder.
+The built apps and installers will be in `dist/`, with `arm64` or `x64` in each installer filename. ARM64 builds run natively without Rosetta. The build workflow checks both packaged executables with `lipo` and uploads the installers as artifacts.
+
+Local and CI examples disable certificate discovery and notarization. Distribution with Developer ID signing and notarization requires your own Apple Developer credentials and a separate electron-builder signing/notarization configuration. macOS may block downloaded unsigned builds; only open builds whose source and origin you trust.
 
 ## Tech Stack
 
@@ -88,7 +100,7 @@ The built app will be in the `dist/` folder.
 No, this is an unofficial wrapper around messenger.com. It's not affiliated with Meta/Facebook.
 
 ### Is it safe?
-Yes. The app is signed and notarized by Apple. It simply loads messenger.com in a native window - no modifications to Messenger itself.
+This fork is not Developer ID signed or notarized. It loads messenger.com in an Electron window. Review the source before building or installing it.
 
 ### Why use this instead of the browser?
 - Dedicated app in your dock

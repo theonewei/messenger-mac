@@ -3,7 +3,7 @@ const path = require('path');
 const fs = require('fs');
 
 const CURRENT_VERSION = app.getVersion();
-const GITHUB_REPO = 'stefanminch/messenger-mac';
+const GITHUB_REPO = 'theonewei/messenger-mac';
 
 // Set app data path explicitly
 app.setPath('userData', path.join(app.getPath('appData'), 'MessengerApp'));

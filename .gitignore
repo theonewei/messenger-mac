@@ -5,5 +5,4 @@ dist/
 *.dmg
 *.zip
 .env
-package-lock.json
 RELEASE_INSTRUCTIONS.md
